@@ -3,7 +3,7 @@ import ssl
 import subprocess
 import os
 from dotenv import load_dotenv
-from PIL import ImageGrab  # Importer ImageGrab depuis Pillow
+from PIL import ImageGrab
 
 SERVER_PORT = 8888
 
