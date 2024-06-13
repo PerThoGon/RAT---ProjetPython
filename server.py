@@ -22,13 +22,13 @@ def shell(client_socket, client_ip) :
     client_socket.send(b'shell') # Envoie de la commande
     print("[*] Taper 'quit' pour quitter le Shell")
     while True:
-        commande_shell = input(f"[{client_ip}] Shell > ")
-        if commande_shell.lower() == 'quit':
+        commande_shell = input(f"[{client_ip}] Shell > ") # Récupération de la commande Shell saisie
+        if commande_shell.lower() == 'quit': # Gestion de la sortie du Shell
             client_socket.send(b'quit')
             break
-        client_socket.send(commande_shell.encode())
-        commande_shell_received = client_socket.recv(4096).decode()
-        print(commande_shell_received)
+        client_socket.send(commande_shell.encode()) # Envoie de la commande Shell au client
+        commande_shell_received = client_socket.recv(4096).decode() # Récupération de la réponse de la commande Shell
+        print(commande_shell_received) # Affichage de la réponse de la commande Shell
 
 # Fonction permettant de récupérer la configuration réseau du client
 def ipconfig(client_socket) :
@@ -85,7 +85,7 @@ def main() :
 
         # Attente d'une connexion entrante et acceptation de celle-ci
         client_socket, client_address = ssl_socket.accept()
-        client_ip, client_port = client_socket.getpeername()
+        client_ip, client_port = client_socket.getpeername() # Récupération de l'adresse IP du client
         print("[+] Agent received !")
 
         # Gestion des commandes envoyées au client
