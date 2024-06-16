@@ -7,7 +7,9 @@ SERVER_PORT = 8888
 
 # Fonction permettant de récupérer la liste des commandes disponibles
 def menu_help(client_socket):
-    client_socket.send(b'menu_help')  # Envoie de la commande
+    client_socket.send(b'help')  # Envoie de la commande
+    menu_help_received = client_socket.recv(4096).decode()  # Réception du menu d'aides
+    print(f'{menu_help_received}')# Affichage du menu d'aides
 
 # Fonction permettant de télécharger un fichier du client
 def download(client_socket):

