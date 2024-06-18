@@ -34,7 +34,7 @@ def shell(client_socket, client_ip):
 
 # Fonction permettant de récupérer la configuration réseau du client
 def ipconfig(client_socket):
-    client_socket.send(b'ifconfig')  # Envoie de la commande
+    client_socket.send(b'ipconfig')  # Envoie de la commande
     conf_received = client_socket.recv(4096).decode()  # Récupération des données de la configuration
     print(f'\n{conf_received}')  # Affichage de la configuration
 

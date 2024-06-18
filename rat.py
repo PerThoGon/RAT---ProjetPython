@@ -46,7 +46,7 @@ def ipconfig(ssl_socket):
         conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ifconfig" et stockage de ses sorties
         conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ifconfig"
     elif os_type == "nt":  # Test si la machine est une Windows
-        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
+        conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
         conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ipconfig"
     else:
         conf_to_send = "OS non reconnu" # Gestion d'erreur
