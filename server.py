@@ -22,7 +22,7 @@ def upload(client_socket, filename):
         filename = input("[?] Entrez le nom du fichier à télécharger : ") # Récupération saisie du nom du fichier
         if filename.strip() == "":
             print("[!] Le nom du fichier ne peut pas être vide !")
-        else:        
+        else:
             if not os.path.exists(filename): # Vérification de l'existence du chemin
                 print("[!] Fichier introuvable")
                 client_socket.send(b'Fichier introuvable')
