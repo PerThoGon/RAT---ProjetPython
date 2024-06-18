@@ -22,12 +22,33 @@ def menu_help(ssl_socket):
     ssl_socket.send(menu_help_to_send.encode()) # Envoie du menu d'aides au serveur
 
 # Fonction permettant de charger un fichier du serveur
-def download(ssl_socket):
+def download(client_socket, filename):
+    filename=input("Quel est le nom du fichier : ")
     print('download')
+    try:
+        client_socket.send(f'download {filename}'.encode())
+
+        server_response = client_socket.recv(1024).decode()
+        if server_response == 'File not found':
+            print(f"Le fichier {filename} n'a pas été trouvé")
+            return
+        
+        with open(f'received_{filename}', 'wb') as file:
+            while True:
+                bytes_read = client_socket.recv(4096)
+                if not bytes_read:
+                    break
+                file.write(bytes_read)
+
+        print(f"Le fichier {filename} a été téléchargé avec succès.")
+    except Exception as e:
+        print(f"Erreur lors du téléchargement du fichier {filename} : {str(e)}")
 
 # Fonction permettant de télécharger un fichier du serveur
 def upload(ssl_socket):
-    print('upload')
+    requete_recue = ssl_socket.recv(4096).decode()
+
+
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
