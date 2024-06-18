@@ -145,5 +145,6 @@ def main():
         client_socket.close()  # Fermeture du socket client
     server_socket.close()  # Fermeture du socket serveur
 
-if __name__ == "__main__":
+if __name__ == "__main__": # Fonction Main
     main()
+
