@@ -30,6 +30,7 @@ def upload(client_socket, filename):
         client_socket.send(b'upload')
         client_socket.send(filename.encode())
         requete_recue = client_socket.recv(4096).decode()
+        
 
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
