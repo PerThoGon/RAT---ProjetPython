@@ -22,7 +22,7 @@ def menu_help(ssl_socket):
     ssl_socket.send(menu_help_to_send.encode()) # Envoie du menu d'aides au serveur
 
 # Fonction permettant de charger un fichier du serveur
-def download(client_socket, filename):
+def download(client_socket):
     filename=input("Quel est le nom du fichier : ")
     print('download')
     try:
@@ -46,42 +46,8 @@ def download(client_socket, filename):
 
 # Fonction permettant de télécharger un fichier du serveur
 def upload(ssl_socket):
-    requete_recue = ssl_socket.recv(4096).decode() # Réception du nom du fichier
-    recherche = []
-    for racine, dirs, dossiers in os.walk("C:\\"): # Parcours du système de fichiers
-        if requete_recue in dossiers:
-            recherche.append(os.path.join(racine, requete_recue))
-    if recherche:
-        requete_recue = "\n".join(recherche)
-    else:
-        requete_recue = "Aucun fichier trouvé"
-    ssl_socket.send(requete_recue.encode())
-
-def receive_file(client_socket):
-    # Envoyer l'acquittement au serveur
-    client_socket.send(b'Ready to receive')
-    
-    # Recevoir le nom du fichier
-    filename = client_socket.recv(4096).decode()
-    
-    # Recevoir la taille du fichier
-    file_size = int(client_socket.recv(4096).decode())
-    
-    # Recevoir le fichier par morceaux de 4096 octets
-    try:
-        with open(filename, 'wb') as file:
-            bytes_received = 0
-            while bytes_received < file_size:
-                chunk = client_socket.recv(4096)
-                if not chunk:
-                    break
-                file.write(chunk)
-                bytes_received += len(chunk)
-        print(f"Le fichier {filename} a été reçu avec succès.")
-        client_socket.send(b'File received successfully')
-    except Exception as e:
-        print(f"Erreur lors de la réception du fichier {filename} : {str(e)}")
-        client_socket.send(b'Error receiving file')
+    filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier
+    ssl_socket.recv(filename.encode())
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):

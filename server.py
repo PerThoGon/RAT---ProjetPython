@@ -16,49 +16,28 @@ def menu_help(client_socket):
 def download(client_socket):
     client_socket.send(b'download')  # Envoie de la commande
 
-# Fonction permettant de charger un fichier au client
-def upload(client_socket):
-        filename = input("[?] Entrez le nom du fichier à télécharger : ") # Récupération saisie du nom du fichier
-        if filename.strip() == "":
+# Fonction permettant de charger un fichier du serveur vers le client
+def upload(ssl_socket):
+    ssl_socket.send(b'upload') # Envoi de la commande
+    while True:
+        filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
+        if filename.strip() == "": # Check si le fichier est vide
             print("[!] Le nom du fichier ne peut pas être vide !")
-            return
-        
-        filepath = os.path.abspath(filename)
-        if not os.path.exists(filepath): # Vérification de l'existence du chemin
-            print("[!] Fichier introuvable")
-            client_socket.send(b'Fichier introuvable')
-            return
-           
-        client_socket.send(b'upload') # Envoie de la commande
-    
-        ready_response = client_socket.recv(4096).decode()
-
-        if ready_response != 'Ready to receive':
-            print("[!] Client non prêt pour la réception du fichier.")
-            return
-
-        client_socket.send(os.path.basename(filename).encode()) #Envoi du nom du fichier
-        file_size = os.path.getsize(filename)
-        client_socket.send(str(file_size).encode())
-    
-        try:
-            with open(filename, 'rb') as file:
-                while True:
-                    bytes_read = file.read(4096)
-                    if not bytes_read:
-                        break
-                    client_socket.sendall(bytes_read)
-            print(f"Les fichiers {filename} ont été envoyés avec succès.")
-        except Exception as e:
-            print(f"Erreur lors de l'envoi du fichier{filename} : {str(e)}")
-            client_socket.send(b'Error sending file')
-
-        final_ack = client_socket.recv(4096).decode()
-        if final_ack == 'File received successfully':
-            print("[+] Fichier reçu avec succès par le client.")
         else:
-            print("[!] Erreur lors de la réception du fichier par le client.") 
-
+            break
+    try:
+        ssl_socket.send(filename.encode())
+        with open(filename, 'rb') as file:
+            while True:
+                bytes_read = file.read(4096)
+                if not bytes_read:
+                    break
+                ssl_socket.sendall(bytes_read)  # Envoi des données du fichier au client
+                print({filename})
+        print(f"[+] Le fichier '{filename}' a été envoyé avec succès.")
+    except Exception as e:
+        print(f"[!] Erreur lors de l'envoi du fichier '{filename}': {str(e)}")
+        
 
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
