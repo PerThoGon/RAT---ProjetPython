@@ -46,7 +46,7 @@ def download(client_socket, filename):
 
 # Fonction permettant de télécharger un fichier du serveur
 def upload(ssl_socket):
-    requete_recue = ssl_socket.recv(4096).decode()
+    requete_recue = ssl_socket.recv(4096).decode() # Réception du nom du fichier
     recherche = []
     for racine, dirs, dossiers in os.walk("/"): # Parcours du système de fichiers
         if requete_recue in dossiers:
