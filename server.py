@@ -18,27 +18,34 @@ def download(client_socket):
 
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(ssl_socket):
-    ssl_socket.send(b'upload') # Envoi de la commande
     while True:
         filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
         if filename.strip() == "": # Check si le fichier est vide
             print("[!] Le nom du fichier ne peut pas être vide !")
         else:
             break
-    try:
-        ssl_socket.send(filename.encode())
-        with open(filename, 'rb') as file:
-            while True:
-                bytes_read = file.read(4096)
-                if not bytes_read:
-                    break
-                ssl_socket.sendall(bytes_read)  # Envoi des données du fichier au client
-                print({filename})
-        print(f"[+] Le fichier '{filename}' a été envoyé avec succès.")
-    except Exception as e:
-        print(f"[!] Erreur lors de l'envoi du fichier '{filename}': {str(e)}")
+    results = []
+    disk_root = "C:\\"
+    for root, dirs, files in os.walk(disk_root):
+        if filename in files:
+            results.append(os.path.join(root, filename))
+    return results
+    
+    """"
+    ssl_socket.send(b'upload') # Envoi de la commande       
+    ###ssl_socket.send(filename.encode())
+with open(filename, 'rb') as file:
+        while True:
+                    bytes_read = file.read(4096)
+                    if not bytes_read:
+                        break
+ssl_socket.sendall(bytes_read)  # Envoi des données du fichier au client
+print({filename})
+print(f"[+] Le fichier '{filename}' a été envoyé avec succès.")
+        #except Exception as e:
+        ##print(f"[!] Erreur lors de l'envoi du fichier '{filename}': {str(e)}")
         
-
+"""
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
     client_socket.send(b'shell')  # Envoie de la commande

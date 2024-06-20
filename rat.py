@@ -44,7 +44,7 @@ def download(client_socket):
     except Exception as e:
         print(f"Erreur lors du téléchargement du fichier {filename} : {str(e)}")
 
-# Fonction permettant de télécharger un fichier du serveur
+# Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
     filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier
     ssl_socket.recv(filename.encode())
