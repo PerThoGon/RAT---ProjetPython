@@ -47,7 +47,7 @@ def download(client_socket):
 # Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
     filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier
-    ssl_socket.recv(filename.encode())
+    #ssl_socket.recv(filename.encode())
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
