@@ -47,15 +47,13 @@ def download(client_socket):
 # Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
     try:
-        command = ssl_socket.recv(4096)
-        if command == b'upload':
-            filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier 
-        with open(filename, 'wb') as f:
+        filename = ssl_socket.recv(4096).decode() # Réception du nom du fichier 
+        with open(filename, 'wb') as file:
             while True:
                 chunk = ssl_socket.recv(4096)
                 if not chunk:
                     break
-                f.write(chunk)
+                file.write(chunk)
             print(f"Le fichier '{filename} a bien été reçu")
     except Exception as e:
         print(f"Erreur lors de la réception du fichier")

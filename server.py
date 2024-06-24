@@ -18,6 +18,7 @@ def download(client_socket):
 
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(ssl_socket):
+    ssl_socket.send(b'upload')
     while True:
         filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
         if filename.strip() == "": # Check si le fichier est vide
@@ -49,7 +50,6 @@ def upload(ssl_socket):
                 print(f"Entrée invalide. Veuillez saisir un numéro valide.")
                     
         try:
-            ssl_socket.send(b'upload')
             ssl_socket.send(filename.encode())
             with open(filepath, 'rb') as f:
                 while True:
