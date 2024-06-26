@@ -18,10 +18,10 @@ def download(client_socket):
 
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(ssl_socket):
-    ssl_socket.send(b'upload')
+    ssl_socket.send(b'upload') #Envoi de la commande upload
     while True:
         filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
-        if filename.strip() == "": # Check si le fichier est vide
+        if filename.strip() == "": # Check si l'input est vide
             print("[!] Le nom du fichier ne peut pas être vide !")
         else:
             break
@@ -29,34 +29,33 @@ def upload(ssl_socket):
     results = []
     disk_root = "C:\\"
     
-    for root, dirs, files in os.walk(disk_root):
+    for root, dirs, files in os.walk(disk_root): # Recherche du fichier à la racine
         if filename in files:
             results.append(os.path.join(root, filename))
             
     if results:
-        print("[*] Voici les fichiers trouvés :")
-        for result, filepath in enumerate(results):
+        print("[*] Voici les fichiers trouvés :") # Print des fichiers trouvés avec chemin complet
+        for result, filepath in enumerate(results): # Affichage sous forme de liste
             print(f"    => {result + 1} - {filepath}")        
         while True:
             try:
-                choice = int(input("Entrez le numéro de fichier à envoyer :"))
+                choice = int(input("Entrez le numéro de fichier à envoyer :")) # Menu interactif pour sélectionner le fichier et le chemin exact
                 if 0 < choice <= len(results):
                     filepath = results[choice-1]
                     break
                 else:
-                    
                     print("Numéro invalide. Veuillez saisir un numéro dans la liste :")
             except ValueError:
                 print(f"Entrée invalide. Veuillez saisir un numéro valide.")
                     
         try:
-            ssl_socket.send(filename.encode())
-            with open(filepath, 'rb') as f:
+            ssl_socket.send(filename.encode()) #Envoi du nom du fichier
+            with open(filepath, 'rb') as f: # Ouverture/lecture du fichier
                 while True:
                     chunk = f.read(4096)
                     if not chunk : 
                         break
-                    ssl_socket.sendall(chunk)       
+                    ssl_socket.sendall(chunk) # Envoi du fichier     
         except Exception as e:
             print(f"Erreur lors de l'envoi du fichier {filename} : {str(e)}")
     else:
