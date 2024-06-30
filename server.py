@@ -16,44 +16,22 @@ def menu_help(client_socket):
 
 # Fonction permettant de télécharger un fichier du client
 def download(client_socket):
-        filename = input("[?] Quel est le fichier que vous rechercher : ")
+    client_socket.send(b'download')  # Envoi de la commande download
+
+    fichier_to_send = input("[?] Entrez le chemin exact du fichier à télécharger depuis le client : ")  # Saisie du chemin du fichier à télécharger
+    client_socket.send(fichier_to_send.encode())  # Envoi du chemin du fichier au client
+
+    with open(os.path.basename(fichier_to_send), 'wb') as file:  # Ouverture du fichier local avec le même nom que sur le client
         while True:
-            if filename.strip() == "":
-                print("[!] Le nom du fichier ne peut être vide.")
-            else:
+            fichier_received = client_socket.recv(4096)  # Réception des données du fichier
+            if fichier_received.endswith(b'END'):
+                file.write(fichier_received[:-3])
                 break
-        client_socket.send(b'download')
-        client_socket.send(filename.encode())
+            file.write(fichier_received)
     
-        results_filename = client_socket.recv(4096).decode()
-        if results_filename == "no results":
-            print("Aucun résultat trouvé.")
-        else:
-            print("Resultats trouvés :")
-            print(results_filename)
+    print(f"[+] Le fichier '{os.path.basename(fichier_to_send)}' a été téléchargé avec succès.")
 
 
-"""    try:    
-            ssl_socket.send(f'filename'.encode())
-            server_response = ssl_socket.recv(1024).decode()
-            if server_response == 'File not found':
-                print(f"Le fichier {filename} n'a pas été trouvé")
-            return
-        
-        with open(f'received_{filename}', 'wb') as file:
-            while True:
-                bytes_read = ssl_socket.recv(4096)
-                if not bytes_read:
-                    break
-                file.write(bytes_read)
-
-        print(f"Le fichier {filename} a été téléchargé avec succès.")
-    except Exception as e:
-        print(f"Erreur lors du téléchargement du fichier {filename} : {str(e)}")        
-    
-    #    except:
-    #            breakpoint
-"""
 
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(client_socket):
