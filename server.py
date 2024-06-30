@@ -42,42 +42,17 @@ def upload(client_socket):
             print("[!] Le nom du fichier ne peut pas être vide !")
         else:
             break
-        
-    results = []
-    disk_root = "/"
-        
-    for root, dirs, files in os.walk(disk_root): # Recherche du fichier à la racine
-        if filename in files:
-            results.append(os.path.join(root, filename))
-            
-    if results:
-        print("[*] Voici les fichiers trouvés :") # Print des fichiers trouvés avec chemin complet
-        for result, filepath in enumerate(results): # Affichage sous forme de liste
-            print(f"    => {result + 1} - {filepath}")        
-        while True:
-            try:
-                choice = int(input("Entrez le numéro de fichier à envoyer : ")) # Menu interactif pour sélectionner le fichier et le chemin exact
-                if 0 < choice <= len(results):
-                    filepath = results[choice-1]
+    try:
+        client_socket.send(filename.encode()) #Envoi du nom du fichier
+        with open(filename, 'rb') as f: # Ouverture/lecture du fichier
+            while True:
+                chunk = f.read(4096)
+                if not chunk : 
                     break
-                else:
-                    print("Numéro invalide. Veuillez saisir un numéro dans la liste :")
-            except ValueError:
-                print(f"Entrée invalide. Veuillez saisir un numéro valide.")
-                    
-        try:
-            client_socket.send(filename.encode()) #Envoi du nom du fichier
-            with open(filepath, 'rb') as f: # Ouverture/lecture du fichier
-                while True:
-                    chunk = f.read(4096)
-                    if not chunk : 
-                        break
-                    client_socket.sendall(chunk) # Envoi du fichier
-            client_socket.send(b'END')  # Envoi d'un délimiteur final
-        except Exception as e:
-            print(f"Erreur lors de l'envoi du fichier {filename} : {str(e)}")
-    else:
-        print(f"Aucun fichier du nom de '{filename}' n'a été trouvé")
+                client_socket.sendall(chunk) # Envoi du fichier
+        client_socket.send(b'END')  # Envoi d'un délimiteur final
+    except Exception as e:
+        print(f"Erreur lors de l'envoi du fichier {filename} : {str(e)}")
 
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
