@@ -1,6 +1,9 @@
 mon_env/
 mon_env_propre/
 
+testuploadfromlinux.txt
+testuploadfromwindows.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
