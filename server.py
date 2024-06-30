@@ -67,6 +67,7 @@ def download(client_socket):
     #    except:
     #            breakpoint
 """
+
 # Fonction permettant de charger un fichier du serveur vers le client
 def upload(client_socket):
     client_socket.send(b'upload') #Envoi de la commande upload
@@ -106,11 +107,12 @@ def upload(client_socket):
                     chunk = f.read(4096)
                     if not chunk : 
                         break
-                    client_socket.sendall(chunk) # Envoi du fichier     
+                    client_socket.sendall(chunk) # Envoi du fichier
+            client_socket.send(b'END')  # Envoi d'un délimiteur final
         except Exception as e:
             print(f"Erreur lors de l'envoi du fichier {filename} : {str(e)}")
     else:
-        print(f"Aucun fichier du nom de '{filename}' n'a été trouvé")        
+        print(f"Aucun fichier du nom de '{filename}' n'a été trouvé")
 
 # Fonction permettant d'initier un shell intéractif sur le client
 def shell(client_socket, client_ip):
@@ -211,4 +213,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-#for racine, dirs, dossiers in os.walk("/"): # Parcours du système de fichiers

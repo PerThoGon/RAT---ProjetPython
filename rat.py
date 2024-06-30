@@ -50,7 +50,8 @@ def upload(ssl_socket):
         with open(filename, 'wb') as file:
             while True:
                 chunk = ssl_socket.recv(4096)
-                if not chunk:
+                if chunk.endswith(b'END'):
+                    file.write(chunk[:-3])
                     break
                 file.write(chunk)
     except Exception as e:
